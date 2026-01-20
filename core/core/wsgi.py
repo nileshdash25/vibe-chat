@@ -2,7 +2,7 @@ import os
 import django
 
 # Pehle settings set karo
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.core.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 from django.core.asgi import get_asgi_application

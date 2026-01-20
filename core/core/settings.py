@@ -45,9 +45,9 @@ MIDDLEWARE = [
 ]
 
 # --- URL & APPLICATION CONFIG ---
-ROOT_URLCONF = 'core.core.urls'
-WSGI_APPLICATION = 'core.core.wsgi.application'
-ASGI_APPLICATION = 'core.core.asgi.application'
+ROOT_URLCONF = 'core.urls'
+WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'core.asgi.application'
 
 # --- TEMPLATES CONFIGURATION (Ye missing tha, iske bina crash hoga) ---
 TEMPLATES = [
