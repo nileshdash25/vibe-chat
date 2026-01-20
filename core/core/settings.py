@@ -6,7 +6,9 @@ from pathlib import Path
 # 1. Base Directory Setup
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Nested structure fix
+# Purani line hata kar ye daal de
 sys.path.append(os.path.join(BASE_DIR, 'core'))
+sys.path.append(os.path.join(BASE_DIR, 'core', 'core'))
 
 # 2. Security Settings
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
