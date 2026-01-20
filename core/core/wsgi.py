@@ -1,16 +1,20 @@
-"""
-WSGI config for core project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
-"""
-
 import os
+import django
 
-from django.core.wsgi import get_wsgi_application
-
+# Pehle settings set karo
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.core.settings')
+django.setup()
 
-application = get_wsgi_application()
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+import chat.routing  # Tera chat routing yahan import hoga
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            chat.routing.websocket_urlpatterns
+        )
+    ),
+})
