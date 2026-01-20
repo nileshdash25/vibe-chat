@@ -39,7 +39,7 @@ MIDDLEWARE = [
     'chat.middleware.UpdateLastSeenMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = 'core.core.urls'
 
 # 4. Database (PostgreSQL for Render)
 DATABASES = {
