@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - Vibe </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Glass Theme */
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .profile-card { width: 380px; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(20px); border-radius: 25px; padding: 40px 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255, 255, 255, 0.4); text-align: center; }
+        
+        /* Avatar */
+        .avatar-container { position: relative; width: 110px; height: 110px; margin: 0 auto 15px; }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+        .upload-icon { position: absolute; bottom: 5px; right: 5px; background: #6c5ce7; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; }
+        
+        /* Badge Logic */
+        .role-badge { font-size: 11px; padding: 4px 10px; border-radius: 15px; color: white; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .badge-guest { background: #e17055; }
+        .badge-member { background: #00b894; }
+
+        /* Form */
+        .form-group { text-align: left; margin-top: 15px; }
+        label { font-size: 12px; font-weight: 600; color: #555; margin-left: 8px; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px 15px; border-radius: 15px; border: none; outline: none; background: rgba(255,255,255,0.7); font-family: 'Poppins', sans-serif; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus { background: white; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.1); }
+        
+        /* Locked State */
+        input:disabled, select:disabled { opacity: 0.7; cursor: not-allowed; background: rgba(0,0,0,0.05); color: #777; }
+
+        /* Buttons */
+        .btn-save { width: 100%; padding: 14px; margin-top: 25px; border: none; border-radius: 15px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { transform: translateY(-2px); }
+        .btn-back { display: block; margin-top: 20px; color: #666; text-decoration: none; font-size: 13px; font-weight: 500; }
+        
+        #id_avatar { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="avatar-container">
+                {% if profile.avatar and "default.png" not in profile.avatar.url %}
+                    <img src="{{ profile.avatar.url }}" class="avatar-img" id="preview-img">
+                {% elif profile.gender == 'Female' %}
+                    <img src="/media/avatars/female.png" class="avatar-img" id="preview-img">
+                {% else %}
+                    <img src="/media/avatars/male.png" class="avatar-img" id="preview-img">
+                {% endif %}
+                
+                {% if not is_guest_mode %}
+                    <label for="id_avatar" class="upload-icon">📷</label>
+                    <input type="file" name="avatar" id="id_avatar" accept="image/*" onchange="previewImage(this)">
+                {% endif %}
+            </div>
+
+            <h2 style="margin:10px 0 5px;">{{ request.user.username }}</h2>
+            
+            {% if is_guest_mode %}
+                <span class="role-badge badge-guest">GUEST USER</span>
+            {% else %}
+                <span class="role-badge badge-member">MEMBER</span>
+            {% endif %}
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select name="gender" {% if is_guest_mode %}disabled{% endif %}>
+                    <option value="Male" {% if profile.gender == 'Male' %}selected{% endif %}>Male 👨</option>
+                    <option value="Female" {% if profile.gender == 'Female' %}selected{% endif %}>Female 👩</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" name="age" value="{{ profile.age|default:'' }}" placeholder="Enter Age" {% if is_guest_mode %}disabled{% endif %}>
+            </div>
+
+            {% if not is_guest_mode %}
+                <div class="form-group">
+                    <label>New Password (Optional)</label>
+                    <input type="password" name="password" placeholder="Leave blank to keep same">
+                </div>
+                <button type="submit" class="btn-save">Save Changes</button>
+            {% else %}
+                <div style="margin-top: 25px; padding: 12px; background: rgba(225, 112, 85, 0.15); border-radius: 12px; color: #d35400; font-size: 12px;">
+                    🔒 <strong>Read Only Mode</strong><br>Guest users cannot edit profile details.
+                </div>
+            {% endif %}
+
+            <a href="{% url 'chat_room' %}" class="btn-back">← Back to Chat Room</a>
+        </form>
+    </div>
+
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) { document.getElementById('preview-img').src = e.target.result; }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+
+</body>
+</html>

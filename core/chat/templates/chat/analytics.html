@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f6f9; padding: 20px; }
+        .dashboard-container { max-width: 1000px; margin: 0 auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .card h3 { margin: 0; color: #777; font-size: 14px; text-transform: uppercase; }
+        .card p { font-size: 32px; font-weight: bold; color: #2c3e50; margin: 10px 0 0; }
+        
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c3e50; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1 style="color:#2c3e50;">📊 Pro Chat Analytics</h1>
+    
+    <div class="stats-grid">
+        <div class="card">
+            <h3>Total Users</h3>
+            <p>{{ total_users }}</p>
+        </div>
+        <div class="card">
+            <h3>Total Messages</h3>
+            <p>{{ total_messages }}</p>
+        </div>
+        <div class="card">
+            <h3>Guests</h3>
+            <p>{{ total_guests }}</p>
+        </div>
+        <div class="card">
+            <h3>Members</h3>
+            <p>{{ total_members }}</p>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-box">
+            <canvas id="userTypeChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Recently Active Users</h3>
+            <table>
+                <tr>
+                    <th>User</th>
+                    <th>Last Seen</th>
+                </tr>
+                {% for profile in active_users %}
+                <tr>
+                    <td>{{ profile.user.username }} {% if profile.is_guest %}(Guest){% endif %}</td>
+                    <td>{{ profile.last_seen|timesince }} ago</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // User Type Pie Chart
+    const ctx = document.getElementById('userTypeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Guests', 'Members'],
+            datasets: [{
+                data: [{{ total_guests }}, {{ total_members }}],
+                backgroundColor: ['#ff6b6b', '#4ecdc4']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'User Distribution' }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

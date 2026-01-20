@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; margin: 0; }
+        
+        .box { 
+            background: white; padding: 40px; border-radius: 12px; width: 320px; 
+            text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.3); 
+            position: relative; z-index: 1; 
+        }
+        
+        h3 { color: #2c3e50; margin-top: 0; margin-bottom: 10px; font-size: 22px; }
+        p { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+        
+        /* --- 1. CSS to Remove Input Arrows (Spinners) --- */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Input Styling */
+        input { 
+            width: 100%; padding: 15px; font-size: 24px; text-align: center; letter-spacing: 10px; margin-bottom: 20px; 
+            border: 2px solid #e0e0e0; border-radius: 8px; outline: none; transition: 0.3s; 
+            font-weight: bold; color: #2c3e50; box-sizing: border-box; background: #f9f9f9;
+        }
+        input:focus { border-color: #1abc9c; background: white; box-shadow: 0 0 8px rgba(26, 188, 156, 0.2); }
+        
+        /* Button Styling */
+        button { 
+            width: 100%; padding: 14px; background: #1abc9c; color: white; border: none; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; 
+            transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { background: #16a085; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.15); }
+        button:active { transform: translateY(0); }
+        
+        .error { 
+            background: #ffdede; color: #c0392b; padding: 12px; border-radius: 6px; 
+            margin-bottom: 20px; display: block; font-size: 13px; border: 1px solid #e74c3c; 
+            font-weight: bold;
+        }
+
+        /* --- 2. Loading Overlay Styles --- */
+        #loader-overlay {
+            display: none; /* Default Hidden */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95);
+            z-index: 9999;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        
+        .spinner {
+            width: 50px; height: 50px; 
+            border: 5px solid rgba(255,255,255,0.3); 
+            border-top: 5px solid #1abc9c; 
+            border-radius: 50%;
+            animation: spin 1s linear infinite; 
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        
+        .loading-text { color: white; font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+<div id="loader-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Verifying Code...</div>
+</div>
+
+<div class="box">
+    <h3>🔐 OTP Verification</h3>
+    <p>We've sent a 4-digit code to your email.<br>Please enter it below to confirm.</p>
+    
+    {% if error %}
+        <span class="error">❌ {{ error }}</span>
+    {% endif %}
+    
+    <form method="POST" onsubmit="showLoader()">
+        {% csrf_token %}
+        <input type="number" name="otp" placeholder="8888" required max="9999" id="otp-input">
+        <button type="submit">Verify & Login</button>
+    </form>
+</div>
+
+<script>
+    // Button dabate hi Loading dikhana
+    function showLoader() {
+        document.getElementById('loader-overlay').style.display = 'flex';
+    }
+    
+    // Page load hone par apne aap input par focus ho jaye
+    window.onload = function() {
+        document.getElementById('otp-input').focus();
+    };
+</script>
+
+</body>
+</html>
