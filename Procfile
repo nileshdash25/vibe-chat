@@ -1,0 +1,1 @@
+web: python core/manage.py migrate --noinput && python core/manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p $PORT core.core.asgi:application
