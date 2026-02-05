@@ -75,12 +75,12 @@ TEMPLATES = [
 # --------------------------------------------------
 # DATABASE (Railway Safe)
 # --------------------------------------------------
-DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.strip():
     DATABASES = {
         "default": dj_database_url.parse(
-            DATABASE_URL,
+            DATABASE_URL.strip(),
             conn_max_age=600,
             ssl_require=True,
         )
@@ -92,6 +92,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
 
 
 
