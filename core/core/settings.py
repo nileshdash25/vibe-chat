@@ -75,23 +75,13 @@ TEMPLATES = [
 # --------------------------------------------------
 # DATABASE (Railway Safe)
 # --------------------------------------------------
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
-if DATABASE_URL and DATABASE_URL.strip():
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL.strip(),
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
 
 
 
