@@ -525,3 +525,7 @@ def analytics_view(request):
         'active_users': active_users,
     }
     return render(request, 'chat/analytics.html', context)
+    from django.shortcuts import redirect
+
+def home(request):
+    return redirect("chat_room")
