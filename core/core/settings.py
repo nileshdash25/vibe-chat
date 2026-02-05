@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "core.chat",
+    "chat",
 ]
 
 # --------------------------------------------------
@@ -43,7 +43,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    "core.chat.middleware.UpdateLastSeenMiddleware",
+    "chat.middleware.UpdateLastSeenMiddleware",
+
 ]
 
 # --------------------------------------------------
