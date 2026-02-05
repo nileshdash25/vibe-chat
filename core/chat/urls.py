@@ -26,8 +26,9 @@ urlpatterns = [
     path('fix-db/', views.force_fix_db, name='fix_db'),
 
       #-- MESSAGE FETCHING ---  
-    path('fetch/', views.fetch_messages, name='fetch_global'),
-    path('fetch/<str:username>/', views.fetch_messages, name='fetch_private'),
+    path("fetch/", views.fetch_messages, name="fetch_global"),
+    path("fetch/<str:username>/", views.fetch_messages, name="fetch_private"),
+
     path('update_typing/', views.update_typing_status, name='update_typing'),
     path('contact_admin/', views.contact_admin, name='contact_admin'),
     path('block_user/<str:username>/', views.block_user, name='block_user'),
