@@ -11,7 +11,7 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            core.chat.routing.websocket_urlpatterns
+            chat.routing.websocket_urlpatterns
         )
     ),
 })
