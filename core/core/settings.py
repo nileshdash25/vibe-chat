@@ -43,7 +43,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    "chat.middleware.UpdateLastSeenMiddleware",
+    "core.chat.middleware.UpdateLastSeenMiddleware",
+
 ]
 
 # --------------------------------------------------
