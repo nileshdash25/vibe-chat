@@ -80,29 +80,34 @@ def send_message(request, username=None):
         if username:
             receiver = get_object_or_404(User, username=username)
             
-            # 🔥 FIX: Agar Block hai (Dono taraf se), toh message mat bhejo
-            # 1. Usne mujhe block kiya hai
+            # 🔥 Fix: Stronger AJAX check using META
+            is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+            # Block Check
             if receiver.profile.blocked_users.filter(id=request.user.profile.id).exists():
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Blocked'})
                 messages.error(request, "🚫 Message failed! You are blocked.")
                 return redirect('private_chat', username=username)
             
-            # 2. Maine usse block kiya hai
             if request.user.profile.blocked_users.filter(id=receiver.profile.id).exists():
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Unblock user first'})
                 messages.error(request, "🚫 Unblock user to send message.")
                 return redirect('private_chat', username=username)
 
         if msg or file:
             clean_msg = sanitize_message(msg) if msg else ""
-
             ChatMessage.objects.create(
                 sender=request.user,
                 receiver=receiver,
                 message=clean_msg,
                 file=file
             )
+            
+            # 🔥 Fix: Always return JSON for JS requests
+            if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'success'})
 
     return redirect('private_chat', username=username) if username else redirect('chat_room')
-
 # --- BLOCK USER ---
 
 @login_required
@@ -413,10 +418,6 @@ def force_fix_db(request):
 @login_required
 def fetch_messages(request, username=None):
     partner = None
-    raw_id = request.GET.get('last_id', '0')
-    try: last_id = int(float(raw_id)) if raw_id not in ['undefined', 'null', ''] else 0
-    except: last_id = 0
-    
     msgs = []
     is_blocked_by_me = False
     is_blocked_by_them = False
@@ -425,33 +426,34 @@ def fetch_messages(request, username=None):
         partner = get_object_or_404(User, username=username)
         ChatMessage.objects.filter(sender=partner, receiver=request.user, is_read=False).update(is_read=True)
         
-        msgs = ChatMessage.objects.filter(
-            (Q(sender=request.user, receiver=partner) | Q(sender=partner, receiver=request.user)),
-            id__gt=last_id
-        ).order_by('timestamp')
+        # Last 50 messages logic for Green Ticks
+        all_msgs = ChatMessage.objects.filter(
+            Q(sender=request.user, receiver=partner) | 
+            Q(sender=partner, receiver=request.user)
+        ).order_by('-timestamp')[:50]
+        msgs = reversed(all_msgs)
 
         if request.user.profile.blocked_users.filter(id=partner.profile.id).exists():
             is_blocked_by_me = True
-        
         if partner.profile.blocked_users.filter(id=request.user.profile.id).exists():
             is_blocked_by_them = True
-
     else:
+        raw_id = request.GET.get('last_id', '0')
+        try: last_id = int(float(raw_id)) if raw_id not in ['undefined', 'null', ''] else 0
+        except: last_id = 0
         msgs = ChatMessage.objects.filter(receiver=None, id__gt=last_id).order_by('timestamp')
 
     data = []
     for m in msgs:
         file_url = m.file.url if m.file else None
         is_img = False
-        is_audio = False # 🔥 Added for Voice Note
+        is_audio = False
         
         if m.file:
             try:
                 fname = m.file.name.lower()
-                if fname.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
-                    is_img = True
-                elif fname.endswith(('.mp3', '.wav', '.ogg', '.webm')):
-                    is_audio = True
+                if fname.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')): is_img = True
+                elif fname.endswith(('.mp3', '.wav', '.ogg', '.webm')): is_audio = True
             except: pass
 
         data.append({
@@ -464,7 +466,6 @@ def fetch_messages(request, username=None):
             "time": m.timestamp.strftime("%H:%M"),
             "is_me": m.sender == request.user,
             "is_read": m.is_read,
-            # 🔥 BADGE DATA ADDED HERE
             "badge": m.sender.profile.badge, 
             "badge_display": m.sender.profile.get_badge_display()
         })
@@ -478,8 +479,8 @@ def fetch_messages(request, username=None):
         "messages": data,
         "notifications": unread_counts,
         "partner_typing": partner.profile.is_typing if partner else False,
-        "is_blocked_by_me": is_blocked_by_me,   
-        "is_blocked_by_them": is_blocked_by_them 
+        "is_blocked_by_me": is_blocked_by_me,
+        "is_blocked_by_them": is_blocked_by_them
     })
 @login_required
 def update_typing_status(request):
