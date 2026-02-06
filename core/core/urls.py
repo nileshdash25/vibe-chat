@@ -7,7 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # ROOT → CHAT APP
-    path("", include("chat.urls")),
+    path("", include("core.chat.urls")),
 
     # AUTH
     path("accounts/", include("django.contrib.auth.urls")),
