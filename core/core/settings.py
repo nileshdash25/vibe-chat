@@ -174,6 +174,7 @@ JAZZMIN_UI_TWEAKS = {
     "theme": "darkly",
     "dark_mode_theme": "darkly",
 }
+# CSRF Trust for Railway
 CSRF_TRUSTED_ORIGINS = [
-    "https://vibe-chat-production-bc0f.up.railway.app",
+    "https://vibe-chat-production-54e5.up.railway.app",
 ]
