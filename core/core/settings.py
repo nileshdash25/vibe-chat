@@ -50,9 +50,10 @@ MIDDLEWARE = [
 # --------------------------------------------------
 # URL / ASGI / WSGI
 # --------------------------------------------------
-ASGI_APPLICATION = "core.core.asgi.application"
-WSGI_APPLICATION = "core.core.wsgi.application"
-ROOT_URLCONF = "core.core.urls"
+ASGI_APPLICATION = "core.asgi.application"
+ROOT_URLCONF = "core.urls"
+WSGI_APPLICATION = "core.wsgi.application"
+
 
 
 
