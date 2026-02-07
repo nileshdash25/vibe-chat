@@ -155,22 +155,22 @@ LOGIN_URL = "login_user"
 LOGIN_REDIRECT_URL = "chat_room"
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465            # 465 try karte hain wapas
-EMAIL_USE_TLS = False       # TLS band
-EMAIL_USE_SSL = True        # SSL chalu (Direct secure connection)
-EMAIL_TIMEOUT = 30          # 30 seconds wait karega
+import os
 
-# Credentials
+# --- EMAIL CONFIGURATION (BREVO SMTP) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_TIMEOUT = 60
+
+# Auth Credentials (Railway Variables se aayenge)
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-# Debugging ke liye (Logs mein dikhega agar password missing hai)
-if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
-    print("⚠️ WARNING: Email credentials are MISSING in Railway Variables!")
-else:
-    print(f"✅ Email Config Loaded for: {EMAIL_HOST_USER}")
+# Sender Email (Ye tera Gmail hona chahiye jo verified hai)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sipunashish11@gmail.com')
 
 # --------------------------------------------------
 # JAZZMIN
