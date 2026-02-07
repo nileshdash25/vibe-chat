@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
 import dj_database_url
+import socket
 
+# Force IPv4 to fix [Errno 101] Network is unreachable on Railway
+socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --------------------------------------------------
@@ -151,12 +154,15 @@ CHANNEL_LAYERS = {
 LOGIN_URL = "login_user"
 LOGIN_REDIRECT_URL = "chat_room"
 
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465  # Pehle 587 tha, ab 465 kar do
+EMAIL_USE_SSL = True  # TLS hata ke SSL True karo
+EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_TIMEOUT = 30  # Timeout badha diya taaki turant fail na ho
 
 # --------------------------------------------------
 # JAZZMIN
