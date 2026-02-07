@@ -219,13 +219,14 @@ def login_view(request):
 # Sabse upar imports mein ye line honi chahiye:
 # from django.contrib.auth import logout as auth_logout
 
+# Isse import section mein zaroor check kar lena
+from django.conf import settings 
+
 def register_view(request):
-    # 🔥 FIX 2: Logout aur Reload 🔥
-    # Agar koi user (Guest/Member) login hai, toh pehle logout karo
+    # Pehle logout aur reload logic (Fix for Guest/Member switching)
     if request.user.is_authenticated:
         logout(request)
-        # Logout ke baad turant page reload karo taaki session clear ho jaye
-        return redirect('register_user') 
+        return redirect('register_user')
 
     if request.method == 'POST':
         form = EmailRegistrationForm(request.POST)
@@ -235,6 +236,7 @@ def register_view(request):
             user_data = form.cleaned_data
             email = user_data['email']
             
+            # Check duplicate email
             if User.objects.filter(email=email).exists():
                 messages.error(request, "❌ Email already registered.")
                 return render(request, 'chat/register.html', {'form': form})
@@ -243,13 +245,19 @@ def register_view(request):
                 messages.error(request, "❌ Please select a Gender.")
                 return render(request, 'chat/register.html', {'form': form})
 
+            # Session mein data save karo
             request.session['reg_username'] = user_data['username']
             request.session['reg_email'] = email
             request.session['reg_password'] = user_data['password1']
             request.session['reg_gender'] = gender_input 
             
+            # OTP Generate
             otp = random.randint(1000, 9999)
             request.session['reg_otp'] = otp
+            
+            # --- EMAIL SENDING LOGIC (FIXED) ---
+            print(f"--- GENERATED OTP FOR {email}: {otp} ---") # Console mein OTP print karega backup ke liye
+
             try: 
                 subject = 'Verify OTP - Vibe Chat'
                 message = f'Hello,\n\nYour OTP for registration is: {otp}\n\nValid for 10 minutes.\n\n- Team Vibe'
@@ -258,9 +266,13 @@ def register_view(request):
                 from_email = settings.EMAIL_HOST_USER 
                 
                 send_mail(subject, message, from_email, [email], fail_silently=False)
-                print("✅ Email sent successfully via Django!")
-            except: 
-                pass
+                print("✅ Email sent successfully via Django!") # Log success
+            except Exception as e: 
+                # Agar fail hua toh error console mein dikhega
+                print(f"❌ EMAIL FAILED: {e}") 
+                # Hum redirect kar rahe hain taaki tum console se OTP dekh kar login kar sako agar mail na aye
+            # ------------------------------------
+
             return redirect('verify_otp')
     else:
         form = EmailRegistrationForm()
