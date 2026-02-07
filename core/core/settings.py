@@ -157,12 +157,12 @@ LOGIN_REDIRECT_URL = "chat_room"
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465  # Pehle 587 tha, ab 465 kar do
-EMAIL_USE_SSL = True  # TLS hata ke SSL True karo
-EMAIL_USE_TLS = False
+EMAIL_PORT = 587            # Wapas 587 kar diya
+EMAIL_USE_TLS = True        # TLS wapas True
+EMAIL_USE_SSL = False       # SSL False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_TIMEOUT = 30  # Timeout badha diya taaki turant fail na ho
+EMAIL_TIMEOUT = 90
 
 # --------------------------------------------------
 # JAZZMIN
