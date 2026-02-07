@@ -4,7 +4,7 @@ import dj_database_url
 import socket
 
 # Force IPv4 to fix [Errno 101] Network is unreachable on Railway
-socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
+#socket.getaddrinfo = lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --------------------------------------------------
