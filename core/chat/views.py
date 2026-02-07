@@ -251,7 +251,14 @@ def register_view(request):
             otp = random.randint(1000, 9999)
             request.session['reg_otp'] = otp
             try: 
-                send_mail('Verify OTP', f'OTP: {otp}', 'admin@chat.com', [email], fail_silently=False)
+                subject = 'Verify OTP - Vibe Chat'
+                message = f'Hello,\n\nYour OTP for registration is: {otp}\n\nValid for 10 minutes.\n\n- Team Vibe'
+                
+                # 🔥 IMPORTANT FIX: Sender wahi hona chahiye jo settings.py mein hai
+                from_email = settings.EMAIL_HOST_USER 
+                
+                send_mail(subject, message, from_email, [email], fail_silently=False)
+                print("✅ Email sent successfully via Django!")
             except: 
                 pass
             return redirect('verify_otp')
