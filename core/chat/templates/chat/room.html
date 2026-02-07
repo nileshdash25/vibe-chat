@@ -73,10 +73,18 @@
         .lightbox { display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
         .lightbox img { max-width: 90%; max-height: 90%; border-radius: 10px; }
         .close-lightbox { position: absolute; top: 30px; right: 40px; color: white; font-size: 40px; cursor: pointer; font-weight: bold; }
+        
+        /* Mobile Specific Fix */
+        @media (max-width: 768px) {
+            .sidebar { display: none; position: absolute; height: 100%; width: 80%; }
+            .sidebar.active { display: flex; }
+            .chat-area { width: 100%; }
+            .msg { max-width: 85%; }
+        }
     </style>
 </head>
 <body>
-   <div class="sidebar">
+   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span style="font-weight:800;font-size:20px;">⚡ Vibe</span>
         <button id="theme-btn" class="theme-toggle-btn">🌙</button>
@@ -117,6 +125,9 @@
 
 <div class="chat-area">
     <div class="chat-header">
+        <button onclick="document.getElementById('sidebar').classList.toggle('active')" style="background:none;border:none;font-size:24px;margin-right:10px;display:none;" class="mobile-menu-btn">☰</button>
+        <style>@media(max-width:768px){.mobile-menu-btn{display:block !important;}}</style>
+
         <h3 style="margin:0;font-weight:700;">{% if chat_partner %}{{ chat_partner.username }}{% else %}Global Room{% endif %}</h3>
         <div class="chat-actions" style="display:flex;align-items:center;gap:10px;">
             <div class="inbox-container"><div id="inbox-btn" onclick="toggleInbox()" style="cursor:pointer;font-size:20px;">📩 <span id="global-badge" style="display:none;background:red;color:white;font-size:10px;padding:2px 5px;border-radius:10px;position:absolute;top:-5px;right:-5px;">0</span></div><div id="inbox-dropdown"><div id="inbox-list"></div></div></div>
@@ -206,6 +217,28 @@ const blockBtn = document.getElementById("block-btn");
 
 let lastMessageId = 0, isFetching = false, chatPartner = "{{ chat_partner.username|default:'' }}", audioStream = null, isTyping = false;
 
+/* ================= NEW: SECURE WEBSOCKET SETUP (Mobile Fix) ================= */
+// Automatically uses wss:// if on HTTPS (Railway) or ws:// if localhost
+const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const roomName = chatPartner ? chatPartner : "global";
+// Connect to WebSocket
+const chatSocket = new WebSocket(wsProtocol + window.location.host + "/ws/chat/" + roomName + "/");
+
+chatSocket.onopen = function(e) {
+    console.log("✅ Secure WebSocket Connected");
+};
+
+// Jab Naya Message Aaye -> Turant Refresh Karo (Hybrid Approach)
+chatSocket.onmessage = function(e) {
+    // Turant fetch karo bina 2 sec wait kiye
+    fetchMessages();
+};
+
+chatSocket.onclose = function(e) {
+    console.error("❌ Socket Closed unexpectedly");
+};
+/* ================= END WEBSOCKET ================= */
+
 function showToast(m) { toast.innerText = m; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2000); }
 function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
 
@@ -274,7 +307,10 @@ mainForm.addEventListener("submit", function(e) {
     fetch(this.action, { method: "POST", body: formData, headers: {"X-Requested-With": "XMLHttpRequest", "X-CSRFToken": getCsrfToken()} })
     .then(r => r.json()).then(data => { 
         sendBtn.innerText = "➤";
-        if(data.status==="success") { fetchMessages(); } 
+        if(data.status==="success") { 
+            // Message bhejte hi socket ko batao (optional if backend handles it)
+            // fetchMessages(); // Socket will trigger this anyway
+        } 
         else { msgInput.value = oldVal; showToast(data.message || "Failed"); } 
     })
     .catch(() => { sendBtn.innerText = "❌"; msgInput.value = oldVal; showToast("Error"); setTimeout(() => sendBtn.innerText = "➤", 2000); });
@@ -319,12 +355,15 @@ function fetchMessages() {
     }).finally(() => { isFetching = false; });
 }
 
-/* ================= VIDEO CALL LOGIC (FIXED) ================= */
-const peer = new Peer("user_{{ request.user.username }}");
+/* ================= VIDEO CALL LOGIC (FIXED PEER ID) ================= */
+// Fix: Slugify username to prevent PeerJS errors if username has spaces
+const myPeerID = "user_{{ request.user.username|slugify }}"; 
+const peer = new Peer(myPeerID);
+
 let localStream = null;
 let incomingCall = null;
 let incomingCallType = 'audio';
-let currentCall = null; // Important: To track active call
+let currentCall = null; 
 
 peer.on("call", c => { 
     incomingCall = c; 
@@ -337,32 +376,27 @@ function acceptCall() {
     document.getElementById("incoming-call-modal").style.display="none"; 
     document.getElementById("ringtone").pause(); 
     
-    // Get Local Stream
     navigator.mediaDevices.getUserMedia({video: incomingCallType==='video', audio:true})
     .then(stream => { 
         localStream = stream; 
-        
-        // Show Local Video (Self)
         if(incomingCallType === 'video') {
             const myVid = document.getElementById("my-video");
             myVid.srcObject = stream;
-            myVid.play(); // Ensure play is called
+            myVid.play(); 
         }
         
-        // Answer Call
         incomingCall.answer(stream); 
         currentCall = incomingCall;
 
-        // Listen for Remote Stream
         incomingCall.on("stream", remoteStream => { 
             if(incomingCallType === 'video') {
                 const remoteVid = document.getElementById("remote-video");
                 remoteVid.srcObject = remoteStream;
-                remoteVid.play(); // Ensure play is called
+                remoteVid.play(); 
             }
         }); 
 
-        document.getElementById("video-modal").style.display="flex"; // Changed to flex for centering
+        document.getElementById("video-modal").style.display="flex"; 
     })
     .catch(err => {
         console.error("Error accessing media:", err);
@@ -382,19 +416,16 @@ function startCall(u, t) {
     navigator.mediaDevices.getUserMedia({video: t==='video', audio:true})
     .then(stream => { 
         localStream = stream; 
-        
-        // Show Local Video (Self)
         if(t === 'video') {
             const myVid = document.getElementById("my-video");
             myVid.srcObject = stream;
             myVid.play();
         }
 
-        // Call Remote Peer
-        const call = peer.call("user_"+u, stream, {metadata:{type:t}}); 
+        // Use Slugify here too to match Peer ID format
+        const call = peer.call("user_" + u.replace(/\s+/g, '-').toLowerCase(), stream, {metadata:{type:t}}); 
         currentCall = call;
 
-        // Listen for Remote Stream
         call.on("stream", remoteStream => { 
             if(t === 'video') {
                 const remoteVid = document.getElementById("remote-video");
@@ -403,10 +434,9 @@ function startCall(u, t) {
             }
         }); 
         
-        // Handle call close
         call.on("close", endCall);
 
-        document.getElementById("video-modal").style.display="flex"; // Changed to flex for centering
+        document.getElementById("video-modal").style.display="flex"; 
     })
     .catch(err => {
         console.error("Error starting call:", err);
@@ -419,10 +449,10 @@ function endCall() {
         localStream.getTracks().forEach(t => t.stop());
     }
     if(currentCall) {
-        currentCall.close(); // Close connection
+        currentCall.close(); 
     }
     document.getElementById("video-modal").style.display="none"; 
-    location.reload(); // Reload to clear states
+    location.reload(); 
 }
 
 function scrollToBottom() { if(chatBox) chatBox.scrollTop = chatBox.scrollHeight; }
@@ -442,7 +472,8 @@ function openLightbox(src) { document.getElementById("lightboxImg").src = src; d
 function closeLightbox() { document.getElementById("imageLightbox").style.display = "none"; }
 
 window.onload = () => { scrollToBottom(); let initNotifs = { {% for u, c in unread_db_counts.items %}"{{ u }}": {{ c }},{% endfor %} }; updateInboxUI(initNotifs); fetchMessages(); };
-setInterval(fetchMessages, 2000);
+// Fallback Polling (Every 3 seconds instead of 2 to save data)
+setInterval(fetchMessages, 3000);
 </script>
 </body>
 </html>
