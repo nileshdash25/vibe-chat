@@ -157,12 +157,20 @@ LOGIN_REDIRECT_URL = "chat_room"
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587            # Wapas 587 kar diya
-EMAIL_USE_TLS = True        # TLS wapas True
-EMAIL_USE_SSL = False       # SSL False
+EMAIL_PORT = 465            # 465 try karte hain wapas
+EMAIL_USE_TLS = False       # TLS band
+EMAIL_USE_SSL = True        # SSL chalu (Direct secure connection)
+EMAIL_TIMEOUT = 30          # 30 seconds wait karega
+
+# Credentials
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_TIMEOUT = 90
+
+# Debugging ke liye (Logs mein dikhega agar password missing hai)
+if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    print("⚠️ WARNING: Email credentials are MISSING in Railway Variables!")
+else:
+    print(f"✅ Email Config Loaded for: {EMAIL_HOST_USER}")
 
 # --------------------------------------------------
 # JAZZMIN
